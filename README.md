@@ -47,7 +47,7 @@ Settings and custom pictures are stored in `%APPDATA%\CovertCrew`.
 After changing the code, run:
 
 ```
-powershell -ExecutionPolicy Bypass -File C:\code\Forgers-In-Desktop\build.ps1
+powershell -ExecutionPolicy Bypass -File C:\code\covert-crew-desktop\build.ps1
 ```
 
 The Chrome extension version is a separate project in `C:\code\Forgers-In-Tab`.
