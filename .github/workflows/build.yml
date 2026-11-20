@@ -1,0 +1,47 @@
+# Builds CovertCrew.exe on every push to main.
+# Pushing a version tag (for example v1.0) also publishes it as a GitHub Release.
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write  # needed to create releases
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # build.ps1 uses the C# compiler that ships with Windows (.NET Framework 4.x).
+      - name: Build
+        shell: powershell
+        run: .\build.ps1
+
+      - name: Upload exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: CovertCrew
+          path: bin/CovertCrew.exe
+          if-no-files-found: error
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @"
+          Download **CovertCrew.exe** below and double-click it. There's nothing to install.
+
+          Needs Windows 10 or 11. Settings are saved in ``%APPDATA%\CovertCrew``.
+
+          This build isn't code-signed yet, so Windows may show "Windows protected your PC" the first time. Click **More info**, then **Run anyway**.
+          "@
+          [IO.File]::WriteAllText("$PWD\notes.md", $notes)  # UTF-8 without BOM
+          gh release create $env:GITHUB_REF_NAME bin/CovertCrew.exe --title "Covert Crew $env:GITHUB_REF_NAME" --notes-file notes.md
